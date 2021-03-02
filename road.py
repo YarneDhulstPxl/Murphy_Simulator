@@ -56,7 +56,7 @@ class Car(pygame.sprite.Sprite):
 class CarGame(object):
 
     # How "fast" will the game go.
-    SPEED = 1
+    SPEED = 0
 
     # Length of the line
     MIDDLE_LINE_LENGTH = 20
@@ -141,6 +141,11 @@ class CarGame(object):
                 elif event.key == pygame.K_DOWN:
                     self.down = False
 
+    def calculate_distance(self, p2):
+        p1 = [car_x, car_y]
+        distance = math.sqrt(((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2))
+        print(distance)
+
     def check_collission(self):
         global collision15
         global collisionmin15
@@ -148,8 +153,8 @@ class CarGame(object):
         global collisionmin40
 
         for x in range(1, self.width):
-            top = self.road_center[x] - (self.road_size[x] / 2) - 20
-            bottom = self.road_center[x] + (self.road_size[x] / 2) + 20
+            top = self.road_center[x] - (self.road_size[x] / 2)
+            bottom = self.road_center[x] + (self.road_size[x] / 2)
             if self.car.rect.collidepoint(x, top):
                 self.running = False
                 return
@@ -157,38 +162,32 @@ class CarGame(object):
                 self.running = False
                 return
             
-            if angle15rect.collidepoint(x, top + 20):
-                collision15 = True
-                print("angle 15 hit top")
-                return
-            if angle15rect.collidepoint(x, bottom - 20):
-                collision15 = True
-                print("angle 15 hit bottom")
-                return
-            if anglemin15rect.collidepoint(x, top + 20):
-                collisionmin15 = True
-                print("angle -15 hit top")
-                return
-            if anglemin15rect.collidepoint(x, bottom - 20):
-                collisionmin15 = True
-                print("angle -15 hit bottom")
-                return
-            if angle40rect.collidepoint(x, top + 20):
+            if angle40rect.collidepoint(x, top):
                 collision40 = True
-                print("angle 40 hit top")
-                return
-            if angle40rect.collidepoint(x, bottom - 20):
+                # print("angle 40 hit top")
+                print("x: " + str(x) +" y: " + str(top))
+                self.calculate_distance((x, top))
+            if angle40rect.collidepoint(x, bottom):
                 collision40 = True
-                print("angle 40 hit bottom")
-                return
-            if anglemin40rect.collidepoint(x, top + 20):
+                # print("angle 40 hit bottom")
+            if angle15rect.collidepoint(x, top):
+                collision15 = True
+                # print("angle 15 hit top")
+            if angle15rect.collidepoint(x, bottom):
+                collision15 = True
+                # print("angle 15 hit bottom")
+            if anglemin15rect.collidepoint(x, top):
+                collisionmin15 = True
+                # print("angle -15 hit top")
+            if anglemin15rect.collidepoint(x, bottom):
+                collisionmin15 = True
+                # print("angle -15 hit bottom")
+            if anglemin40rect.collidepoint(x, top):
                 collisionmin40 = True
-                print("angle -40 hit top")
-                return
-            if anglemin40rect.collidepoint(x, bottom - 20):
+                # print("angle -40 hit top")
+            if anglemin40rect.collidepoint(x, bottom):
                 collisionmin40 = True
-                print("angle -40 hit bottom")
-                return
+                # print("angle -40 hit bottom")
 
         pass
 
