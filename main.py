@@ -18,6 +18,7 @@ carImg = pygame.image.load('img/racecar.png')
 def car(x, y):
     gameDisplay.blit(carImg, (x, y))
 
+# initial position of the car
 x = (display_width * 0.45)
 y = (display_height * 0.8)
 
@@ -28,6 +29,9 @@ while not crashed:
     
     gameDisplay.fill(white)
     car(x, y)
+
+    pygame.draw.line(gameDisplay, black, (display_width * 0.3, display_height), (display_width * 0.3, 0))
+    pygame.draw.line(gameDisplay, black, (display_width * 0.6, display_height), (display_width * 0.6, 0))
 
     pygame.display.update()
     clock.tick(60)
