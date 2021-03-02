@@ -2,6 +2,18 @@ import math
 import pygame
 import numpy as np
 
+screen = None
+car_x = 0
+car_y = 0
+collision15 = False
+collisionmin15 = False
+collision40 = False
+collisionmin40 = False
+angle15rect = None
+anglemin15rect = None
+angle40rect = None
+anglemin40rect = None
+
 
 class Car(pygame.sprite.Sprite):
     def __init__(self, surface):
@@ -10,31 +22,37 @@ class Car(pygame.sprite.Sprite):
         super(Car, self).__init__()
 
         self._original_image = pygame.image.load('img/car.png')
-        self._original_image = pygame.transform.scale(self._original_image, (50, 30))
+        self._original_image = pygame.transform.scale(
+            self._original_image, (50, 30))
         self.image = self._original_image
 
         global car_x
         global car_y
-        
+
         self.rect = self.image.get_rect()
-        car_x = int(self.rect.centerx)
-        car_y = int(self.rect.centery)
 
         # Set the car right in the center of the screen
         self.rect.centery = self.bounded_rect.height / 2
         self.rect.centerx = self.bounded_rect.width - (self.rect.width / 2)
+        car_x = int(self.rect.centerx)
+        car_y = int(self.rect.centery)
 
     def set_car_straight(self):
         # Set the car straight by just pointing to the original image
         self.image = self._original_image
 
+
+
     def move(self, x, y):
+        global car_x
+        global car_y
+
         if y < 0:
             # If we move down, rotate the image a bit so it looks like it's actually steering down
-            self.image = pygame.transform.rotate(self._original_image, -5)
+            self.image = pygame.transform.rotate(self.image, -1)
         elif y > 0:
             # If we move up, rotate the image a bit so it looks like it's actually steering up
-            self.image = pygame.transform.rotate(self._original_image, 5)
+            self.image = pygame.transform.rotate(self.image, 1)
         else:
             # If we don't move up or down, we set the car straight again
             self.set_car_straight()
@@ -42,9 +60,7 @@ class Car(pygame.sprite.Sprite):
         # Move the car by changing the sprite positions
         self.rect.centerx = self.rect.centerx + x
         self.rect.centery = self.rect.centery + y
-        
-        global car_x
-        global car_y
+
 
         car_x = int(self.rect.centerx)
         car_y = int(self.rect.centery)
@@ -54,7 +70,6 @@ class Car(pygame.sprite.Sprite):
 
 
 class CarGame(object):
-
     # How "fast" will the game go.
     SPEED = 0
 
@@ -74,11 +89,12 @@ class CarGame(object):
         self.height = height
 
         global screen
-        screen = pygame.display.set_mode((self.width , self.height), pygame.DOUBLEBUF)
+        screen = pygame.display.set_mode(
+            (self.width, self.height), pygame.DOUBLEBUF)
 
         self.background = pygame.Surface(screen.get_size()).convert()
 
-        self.font =  pygame.font.Font(None, 24)
+        self.font = pygame.font.Font(None, 24)
 
         # Create car and add it to a "spritegroup"
         self.car = Car(screen)
@@ -144,7 +160,7 @@ class CarGame(object):
     def calculate_distance(self, p2):
         p1 = [car_x, car_y]
         distance = math.sqrt(((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2))
-        print(distance)
+        return distance
 
     def check_collission(self):
         global collision15
@@ -161,34 +177,34 @@ class CarGame(object):
             if self.car.rect.collidepoint(x, bottom):
                 self.running = False
                 return
-            
+
             if angle40rect.collidepoint(x, top):
                 collision40 = True
-                # print("angle 40 hit top")
-                print("x: " + str(x) +" y: " + str(top))
-                self.calculate_distance((x, top))
+                print("[4] => " + str(round(self.calculate_distance((x, top)), 2)))
             if angle40rect.collidepoint(x, bottom):
                 collision40 = True
-                # print("angle 40 hit bottom")
+                print("[4] => " + str(round(self.calculate_distance((x, bottom)), 2)))
+
             if angle15rect.collidepoint(x, top):
                 collision15 = True
-                # print("angle 15 hit top")
+                print("[3] => " + str(round(self.calculate_distance((x, top)), 2)))
             if angle15rect.collidepoint(x, bottom):
                 collision15 = True
-                # print("angle 15 hit bottom")
+                print("[3] => " + str(round(self.calculate_distance((x, bottom)), 2)))
+
             if anglemin15rect.collidepoint(x, top):
                 collisionmin15 = True
-                # print("angle -15 hit top")
+                print("[1] => " + str(round(self.calculate_distance((x, top)), 2)))
             if anglemin15rect.collidepoint(x, bottom):
                 collisionmin15 = True
-                # print("angle -15 hit bottom")
+                print("[1] => " + str(round(self.calculate_distance((x, bottom)), 2)))
+
             if anglemin40rect.collidepoint(x, top):
                 collisionmin40 = True
-                # print("angle -40 hit top")
+                print("[0] => " + str(round(self.calculate_distance((x, top)), 2)))
             if anglemin40rect.collidepoint(x, bottom):
                 collisionmin40 = True
-                # print("angle -40 hit bottom")
-
+                print("[0] => " + str(round(self.calculate_distance((x, bottom)), 2)))
         pass
 
     def run(self):
@@ -223,7 +239,8 @@ class CarGame(object):
                 self.car.move(0, +1)
             else:
                 # We're not moving, so put our car straight again
-                self.car.set_car_straight()
+                # self.car.set_car_straight()
+                5+5
 
             # call update for all our sprites (if they need it)
             self.sprites.update()
@@ -245,12 +262,14 @@ class CarGame(object):
         screen.blit(self.background, (0, 0))
 
         # Plot texts
-        self.plot_text(10, 10, "Road size: {:3}".format(int(self.road_size[0])))
+        self.plot_text(10, 10, "Road size: {:3}".format(
+            int(self.road_size[0])))
         self.plot_text(10, 25, "Points: {:3}".format(self.points))
 
         # Draw the sprites
         self.sprites.draw(screen)
 
+        # Draw the detectors
         self.draw_detectors()
 
         # Flip the buffer to the screen
@@ -267,7 +286,8 @@ class CarGame(object):
         detector_range = 100
         detector_color = (0, 255, 255)
 
-        pygame.draw.line(screen, detector_color, (car_x, car_y) , (car_x - 100, car_y))
+        pygame.draw.line(screen, detector_color,
+                         (car_x, car_y), (car_x - 100, car_y))
 
         # angle + 180 because the car goes to the left
         # angle of 15 degrees
@@ -278,7 +298,8 @@ class CarGame(object):
             collision15 = False
         x2 = detector_range * math.cos(math.radians(195)) + car_x
         y2 = detector_range * math.sin(math.radians(195)) + car_y
-        angle15rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+        angle15rect = pygame.draw.line(
+            screen, detector_color, (car_x, car_y), (x2, y2))
 
         # angle of -15 degrees
         global anglemin15rect
@@ -288,7 +309,8 @@ class CarGame(object):
             collisionmin15 = False
         x2 = detector_range * math.cos(math.radians(-195)) + car_x
         y2 = detector_range * math.sin(math.radians(-195)) + car_y
-        anglemin15rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+        anglemin15rect = pygame.draw.line(
+            screen, detector_color, (car_x, car_y), (x2, y2))
 
         # angle of 40 degrees
         global angle40rect
@@ -298,7 +320,8 @@ class CarGame(object):
             collision40 = False
         x2 = detector_range * math.cos(math.radians(220)) + car_x
         y2 = detector_range * math.sin(math.radians(220)) + car_y
-        angle40rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+        angle40rect = pygame.draw.line(
+            screen, detector_color, (car_x, car_y), (x2, y2))
 
         # angle of -40 degrees
         global anglemin40rect
@@ -308,10 +331,8 @@ class CarGame(object):
             collisionmin40 = False
         x2 = detector_range * math.cos(math.radians(-220)) + car_x
         y2 = detector_range * math.sin(math.radians(-220)) + car_y
-        anglemin40rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
-        
-
-
+        anglemin40rect = pygame.draw.line(
+            screen, detector_color, (car_x, car_y), (x2, y2))
 
     def update_road(self):
         # rotate center and sizes
@@ -333,15 +354,14 @@ class CarGame(object):
 
         # Calculate the new road center, with the angles, this will nicely curve on the screen
         self.road_center[0] = (self.height / 2) - \
-                  ((self.height / 6) * math.sin(math.radians(self.angle1))) - \
-                  ((self.height / 6) * math.sin(math.radians(self.angle2))) - \
-                  ((self.height / 6) * math.sin(math.radians(self.angle3)))
+            ((self.height / 6) * math.sin(math.radians(self.angle1))) - \
+            ((self.height / 6) * math.sin(math.radians(self.angle2))) - \
+            ((self.height / 6) * math.sin(math.radians(self.angle3)))
 
         # Increase middle line counter and wrap on the given length (it doesn't paint anything here)
         self.paint_middle_line = self.paint_middle_line + 1
         if self.paint_middle_line == self.MIDDLE_LINE_LENGTH:
             self.paint_middle_line = 0 - self.MIDDLE_LINE_GAP
-
 
     def paint_road(self):
         # Move whole background one pixel to the left
@@ -376,7 +396,6 @@ class CarGame(object):
             self.background.set_at((0, int(self.road_center[0]-1)), c)
             self.background.set_at((0, int(self.road_center[0])), c)
             self.background.set_at((0, int(self.road_center[0]+1)), c)
-
 
     def plot_text(self, x, y, text):
         surface = self.font.render(text, True, (0, 0, 0))
