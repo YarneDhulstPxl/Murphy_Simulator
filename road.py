@@ -59,7 +59,7 @@ class CarGame(object):
     SPEED = 1
 
     # Length of the line
-    MIDDLE_LINE_LENGTH = 0
+    MIDDLE_LINE_LENGTH = 20
 
     # The length of the gap between the lines
     MIDDLE_LINE_GAP = 40
@@ -142,6 +142,11 @@ class CarGame(object):
                     self.down = False
 
     def check_collission(self):
+        global collision15
+        global collisionmin15
+        global collision40
+        global collisionmin40
+
         for x in range(1, self.width):
             top = self.road_center[x] - (self.road_size[x] / 2) - 20
             bottom = self.road_center[x] + (self.road_size[x] / 2) + 20
@@ -151,11 +156,54 @@ class CarGame(object):
             if self.car.rect.collidepoint(x, bottom):
                 self.running = False
                 return
+            
+            if angle15rect.collidepoint(x, top + 20):
+                collision15 = True
+                print("angle 15 hit top")
+                return
+            if angle15rect.collidepoint(x, bottom - 20):
+                collision15 = True
+                print("angle 15 hit bottom")
+                return
+            if anglemin15rect.collidepoint(x, top + 20):
+                collisionmin15 = True
+                print("angle -15 hit top")
+                return
+            if anglemin15rect.collidepoint(x, bottom - 20):
+                collisionmin15 = True
+                print("angle -15 hit bottom")
+                return
+            if angle40rect.collidepoint(x, top + 20):
+                collision40 = True
+                print("angle 40 hit top")
+                return
+            if angle40rect.collidepoint(x, bottom - 20):
+                collision40 = True
+                print("angle 40 hit bottom")
+                return
+            if anglemin40rect.collidepoint(x, top + 20):
+                collisionmin40 = True
+                print("angle -40 hit top")
+                return
+            if anglemin40rect.collidepoint(x, bottom - 20):
+                collisionmin40 = True
+                print("angle -40 hit bottom")
+                return
 
         pass
 
     def run(self):
         self.running = True
+
+        global collision15
+        global collisionmin15
+        global collision40
+        global collisionmin40
+
+        collision15 = False
+        collisionmin15 = False
+        collision40 = False
+        collisionmin40 = False
 
         # Iterate while running
         while self.running:
@@ -212,11 +260,58 @@ class CarGame(object):
     def draw_detectors(self):
         global car_x
         global car_y
+        global collision15
+        global collisionmin15
+        global collision40
+        global collisionmin40
 
-        detector_color = (0, 0, 0)
+        detector_range = 100
+        detector_color = (0, 255, 255)
+
         pygame.draw.line(screen, detector_color, (car_x, car_y) , (car_x - 100, car_y))
-        pygame.draw.line(screen, detector_color, (car_x, car_y) , (car_x - 100, car_y - 50))
-        pygame.draw.line(screen, detector_color, (car_x, car_y) , (car_x - 100, car_y + 50))
+
+        # angle + 180 because the car goes to the left
+        # angle of 15 degrees
+        global angle15rect
+        detector_color = (0, 255, 255)
+        if collision15:
+            detector_color = (255, 0, 0)
+            collision15 = False
+        x2 = detector_range * math.cos(math.radians(195)) + car_x
+        y2 = detector_range * math.sin(math.radians(195)) + car_y
+        angle15rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+
+        # angle of -15 degrees
+        global anglemin15rect
+        detector_color = (0, 255, 255)
+        if collisionmin15:
+            detector_color = (255, 0, 0)
+            collisionmin15 = False
+        x2 = detector_range * math.cos(math.radians(-195)) + car_x
+        y2 = detector_range * math.sin(math.radians(-195)) + car_y
+        anglemin15rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+
+        # angle of 40 degrees
+        global angle40rect
+        detector_color = (0, 255, 255)
+        if collision40:
+            detector_color = (255, 0, 0)
+            collision40 = False
+        x2 = detector_range * math.cos(math.radians(220)) + car_x
+        y2 = detector_range * math.sin(math.radians(220)) + car_y
+        angle40rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+
+        # angle of -40 degrees
+        global anglemin40rect
+        detector_color = (0, 255, 255)
+        if collisionmin40:
+            detector_color = (255, 0, 0)
+            collisionmin40 = False
+        x2 = detector_range * math.cos(math.radians(-220)) + car_x
+        y2 = detector_range * math.sin(math.radians(-220)) + car_y
+        anglemin40rect = pygame.draw.line(screen, detector_color, (car_x, car_y) , (x2, y2))
+        
+
 
 
     def update_road(self):
