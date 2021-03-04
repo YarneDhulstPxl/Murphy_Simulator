@@ -4,6 +4,7 @@ import math
 import sys
 import random
 import neat
+import pickle
 
 screen_width = 1500
 screen_height = 800
@@ -16,7 +17,7 @@ class Car:
         self.rotate_surface = self.surface
         self.pos = [700, 650]
         self.angle = 0
-        self.speed = 0
+        self.speed = 1
         self.center = [self.pos[0] + 50, self.pos[1] + 50]
         self.radars = []
         self.radars_for_draw = []
@@ -24,6 +25,7 @@ class Car:
         self.goal = False
         self.distance = 0
         self.time_spent = 0
+        self.time_spent_idle = 0
 
     def draw(self, screen):
         screen.blit(self.rotate_surface, self.pos)
@@ -36,7 +38,7 @@ class Car:
             pygame.draw.circle(screen, (0, 255, 0), pos, 5)
 
     def check_collision(self, map):
-        self.is_alive = True
+        # self.is_alive = True
         for p in self.four_points:
             if map.get_at((int(p[0]), int(p[1]))) == (255, 255, 255, 255):
                 self.is_alive = False
@@ -57,7 +59,23 @@ class Car:
 
     def update(self, map):
         #check speed
-        self.speed = 15
+        # self.speed = 1
+        if (self.speed >= 10):
+            self.distance += 10
+
+        if (self.speed <= 1):
+            self.time_spent_idle += 1
+        else:
+            self.time_spent_idle == 0
+
+        if (self.time_spent_idle == 10):
+            self.is_alive = False
+
+        if (self.speed <= 0):
+            self.distance -= 1
+
+        if (self.distance <= -100):
+            self.is_alive = False
 
         #check position
         self.rotate_surface = self.rot_center(self.surface, self.angle)
@@ -140,6 +158,10 @@ def run_car(genomes, config):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("save.pkl", "wb") as f:
+                    pickle.dump(p, f)
+                    f.close()
+                print("exitted")
                 sys.exit(0)
 
 
@@ -149,8 +171,12 @@ def run_car(genomes, config):
             i = output.index(max(output))
             if i == 0:
                 car.angle += 10
-            else:
+            elif i == 1:
                 car.angle -= 10
+            elif i == 2:
+                car.speed += 1
+            else:
+                car.speed -= 1
 
         # Update car and fitness
         remain_cars = 0
