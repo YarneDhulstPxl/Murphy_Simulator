@@ -5,6 +5,8 @@ import sys
 import random
 import neat
 import pickle
+import time
+import gzip
 
 screen_width = 1500
 screen_height = 800
@@ -60,10 +62,11 @@ class Car:
     def update(self, map):
         #check speed
         # self.speed = 1
+        self.distance += self.speed
         if (self.speed >= 10):
             self.distance += 10
 
-        if (self.speed <= 1):
+        if (self.speed <= 3):
             self.time_spent_idle += 1
         else:
             self.time_spent_idle == 0
@@ -158,10 +161,6 @@ def run_car(genomes, config):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                with open("save.pkl", "wb") as f:
-                    pickle.dump(p, f)
-                    f.close()
-                print("exitted")
                 sys.exit(0)
 
 
@@ -209,7 +208,7 @@ def run_car(genomes, config):
         pygame.display.flip()
         clock.tick(0)
 
-if __name__ == "__main__":
+def replay_genome(load_model):
     # Set configuration file
     config_path = "./config-feedforward.txt"
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -223,5 +222,42 @@ if __name__ == "__main__":
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run NEAT
-    p.run(run_car, 1000)
+    if (load_model):
+        # Unpickle model
+        with open("models/04032021-150459.pkl", "rb") as f:
+            genome = pickle.load(f)
+
+        # Convert loaded genome into required data structure
+        genomes = [(1, genome)]
+
+        # Call game with only the loaded genome
+        run_car(genomes, config)
+    else:
+        # Run NEAT
+        model = p.run(run_car, 1000)
+        with open("models/" + time.strftime("%d%m%Y-%H%M%S") + ".pkl", "wb") as f:
+            pickle.dump(model, f)
+            f.close()
+
+
+if __name__ == "__main__":
+
+    replay_genome(False)
+
+    # # Set configuration file
+    # config_path = "./config-feedforward.txt"
+    # config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
+    #                             neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+
+    # # replay_genome("models/04032021-150459.pkl", config)
+
+    # # Create core evolution algorithm class
+    # p = neat.Population(config)
+
+    # # Add reporter for fancy statistical result
+    # p.add_reporter(neat.StdOutReporter(True))
+    # stats = neat.StatisticsReporter()
+    # p.add_reporter(stats)
+
+    # # Run NEAT
+    # model = p.run(run_car, 1000)
