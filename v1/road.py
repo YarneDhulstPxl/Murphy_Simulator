@@ -56,7 +56,7 @@ class Car(pygame.sprite.Sprite):
 class CarGame(object):
 
     # How "fast" will the game go.
-    SPEED = 0
+    SPEED = 1
 
     # Length of the line
     MIDDLE_LINE_LENGTH = 20
