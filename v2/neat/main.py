@@ -22,12 +22,8 @@ class Car:
         self.speed = 1
         self.center = [self.pos[0] + 50, self.pos[1] + 50]
         self.radars = []
-        self.radars_for_draw = []
         self.is_alive = True
-        self.goal = False
         self.distance = 0
-        self.reward = 0
-        self.time_spent = 0
         self.time_spent_idle = 0
 
     def draw(self, screen):
@@ -41,7 +37,6 @@ class Car:
             pygame.draw.circle(screen, (0, 255, 0), pos, 5)
 
     def check_collision(self, map):
-        # self.is_alive = True
         for p in self.four_points:
             if map.get_at((int(p[0]), int(p[1]))) == (255, 255, 255, 255):
                 self.is_alive = False
@@ -61,12 +56,6 @@ class Car:
         self.radars.append([(x, y), dist])
 
     def update(self, map):
-        #check speed
-        # self.speed = 1
-        # self.distance += self.speed
-        # if (self.speed >= 5):
-        #     self.reward += 2
-
         if (self.speed <= 3):
             self.time_spent_idle += 1
         else:
@@ -90,7 +79,6 @@ class Car:
             self.pos[0] = screen_width - 120
 
         self.distance += self.speed
-        # self.time_spent += 1
         self.pos[1] += math.sin(math.radians(360 - self.angle)) * self.speed
         if self.pos[1] < 20:
             self.pos[1] = 20
@@ -123,7 +111,7 @@ class Car:
         return self.is_alive
 
     def get_reward(self):
-        return (self.distance + self.reward) / 50.0
+        return self.distance / 50.0
 
     def rot_center(self, image, angle):
         orig_rect = image.get_rect()
@@ -134,7 +122,6 @@ class Car:
         return rot_image
 
 def run_car(genomes, config):
-
     # Init NEAT
     nets = []
     cars = []
@@ -153,7 +140,7 @@ def run_car(genomes, config):
     clock = pygame.time.Clock()
     generation_font = pygame.font.SysFont("Arial", 70)
     font = pygame.font.SysFont("Arial", 30)
-    map = pygame.image.load('map.png')
+    map = pygame.image.load('map3.png')
 
 
     # Main loop
@@ -163,7 +150,6 @@ def run_car(genomes, config):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit(0)
-
 
         # Input my data and get result from network
         for index, car in enumerate(cars):
@@ -225,7 +211,7 @@ def replay_genome(load_model):
 
     if (load_model):
         # Unpickle model
-        with open("models/05032021-121804.pkl", "rb") as f:
+        with open("models/fully-trained.pkl", "rb") as f:
             genome = pickle.load(f)
 
         # Convert loaded genome into required data structure
@@ -242,5 +228,4 @@ def replay_genome(load_model):
 
 
 if __name__ == "__main__":
-
     replay_genome(True)
