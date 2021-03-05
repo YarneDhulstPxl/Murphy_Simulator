@@ -26,6 +26,7 @@ class Car:
         self.is_alive = True
         self.goal = False
         self.distance = 0
+        self.reward = 0
         self.time_spent = 0
         self.time_spent_idle = 0
 
@@ -62,9 +63,9 @@ class Car:
     def update(self, map):
         #check speed
         # self.speed = 1
-        self.distance += self.speed
-        if (self.speed >= 10):
-            self.distance += 10
+        # self.distance += self.speed
+        # if (self.speed >= 5):
+        #     self.reward += 2
 
         if (self.speed <= 3):
             self.time_spent_idle += 1
@@ -74,8 +75,8 @@ class Car:
         if (self.time_spent_idle == 10):
             self.is_alive = False
 
-        if (self.speed <= 0):
-            self.distance -= 1
+        if (self.speed < 0):
+            self.is_alive = False
 
         if (self.distance <= -100):
             self.is_alive = False
@@ -89,7 +90,7 @@ class Car:
             self.pos[0] = screen_width - 120
 
         self.distance += self.speed
-        self.time_spent += 1
+        # self.time_spent += 1
         self.pos[1] += math.sin(math.radians(360 - self.angle)) * self.speed
         if self.pos[1] < 20:
             self.pos[1] = 20
@@ -107,12 +108,12 @@ class Car:
 
         self.check_collision(map)
         self.radars.clear()
-        for d in range(-90, 120, 45):
+        for d in [-90, -40, -15, 0, 15, 40, 90, 180]:
             self.check_radar(d, map)
 
     def get_data(self):
         radars = self.radars
-        ret = [0, 0, 0, 0, 0]
+        ret = [0, 0, 0, 0, 0, 0, 0, 0]
         for i, r in enumerate(radars):
             ret[i] = int(r[1] / 30)
 
@@ -122,7 +123,7 @@ class Car:
         return self.is_alive
 
     def get_reward(self):
-        return self.distance / 50.0
+        return (self.distance + self.reward) / 50.0
 
     def rot_center(self, image, angle):
         orig_rect = image.get_rect()
@@ -224,7 +225,7 @@ def replay_genome(load_model):
 
     if (load_model):
         # Unpickle model
-        with open("models/04032021-150459.pkl", "rb") as f:
+        with open("models/05032021-121804.pkl", "rb") as f:
             genome = pickle.load(f)
 
         # Convert loaded genome into required data structure
@@ -242,22 +243,4 @@ def replay_genome(load_model):
 
 if __name__ == "__main__":
 
-    replay_genome(False)
-
-    # # Set configuration file
-    # config_path = "./config-feedforward.txt"
-    # config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
-    #                             neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-
-    # # replay_genome("models/04032021-150459.pkl", config)
-
-    # # Create core evolution algorithm class
-    # p = neat.Population(config)
-
-    # # Add reporter for fancy statistical result
-    # p.add_reporter(neat.StdOutReporter(True))
-    # stats = neat.StatisticsReporter()
-    # p.add_reporter(stats)
-
-    # # Run NEAT
-    # model = p.run(run_car, 1000)
+    replay_genome(True)
