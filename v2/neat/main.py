@@ -141,12 +141,15 @@ def run_car(genomes, config):
     clock = pygame.time.Clock()
     generation_font = pygame.font.SysFont("Arial", 70)
     font = pygame.font.SysFont("Arial", 30)
-    map = pygame.image.load('map.png')
+    map = pygame.image.load('map3.png')
 
 
     # Main loop
     global generation
     generation += 1
+    output_0 = False
+    output_1 = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -157,12 +160,31 @@ def run_car(genomes, config):
             output = nets[index].activate(car.get_data())
             i = output.index(max(output))
             if i == 0:
-                car.angle += 10
+                if (output_0 == True):
+                    output_0 = False
+                else:
+                    output_0 = True
+                
+                if (output_1 == False):
+                    car.angle += 10
+                output_1 = False
             elif i == 1:
-                car.angle -= 10
+                if (output_1 == True):
+                    output_1 = False
+                else:
+                    output_1 = True
+                
+                if (output_0 == False):
+                    car.angle -= 10
+                output_0 = False
             elif i == 2:
-                car.speed += 1
+                output_0 = False
+                output_1 = False
+                if (car.speed < 10):
+                    car.speed += 1
             else:
+                output_0 = False
+                output_1 = False
                 car.speed -= 1
 
         # Update car and fitness
@@ -212,7 +234,7 @@ def load_model(load_model):
         # # Call game with only the loaded genome
         # run_car(genomes, config)
 
-        p = neat.Checkpointer.restore_checkpoint('checkpoints/neat-checkpoint-107')
+        p = neat.Checkpointer.restore_checkpoint('checkpoints/final-checkpoint')
         
     # Train from scratch
     else:
@@ -228,7 +250,7 @@ def load_model(load_model):
     p.add_reporter(neat.Checkpointer(1, 5, "checkpoints/neat-checkpoint-"))
         
     # Run NEAT
-    winner = p.run(run_car, 2)
+    winner = p.run(run_car, 1000)
     with open("models/" + time.strftime("%d%m%Y-%H%M%S") + ".pkl", "wb") as f:
         pickle.dump(winner, f)
         f.close()
