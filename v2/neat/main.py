@@ -7,6 +7,7 @@ import neat
 import pickle
 import time
 import gzip
+import visualize
 
 screen_width = 1500
 screen_height = 800
@@ -146,6 +147,9 @@ def run_car(genomes, config):
     # Main loop
     global generation
     generation += 1
+    output_0 = False
+    output_1 = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -156,12 +160,31 @@ def run_car(genomes, config):
             output = nets[index].activate(car.get_data())
             i = output.index(max(output))
             if i == 0:
-                car.angle += 10
+                if (output_0 == True):
+                    output_0 = False
+                else:
+                    output_0 = True
+                
+                if (output_1 == False):
+                    car.angle += 10
+                output_1 = False
             elif i == 1:
-                car.angle -= 10
+                if (output_1 == True):
+                    output_1 = False
+                else:
+                    output_1 = True
+                
+                if (output_0 == False):
+                    car.angle -= 10
+                output_0 = False
             elif i == 2:
-                car.speed += 1
+                output_0 = False
+                output_1 = False
+                if (car.speed < 10):
+                    car.speed += 1
             else:
+                output_0 = False
+                output_1 = False
                 car.speed -= 1
 
         # Update car and fitness
@@ -195,37 +218,51 @@ def run_car(genomes, config):
         pygame.display.flip()
         clock.tick(0)
 
-def replay_genome(load_model):
+def load_model(load_model):
     # Set configuration file
-    config_path = "./config-feedforward.txt"
-    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                                neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, "./config-feedforward.txt")
 
-    # Create core evolution algorithm class
-    p = neat.Population(config)
+    # Load in a model
+    if (load_model):
+        # # Unpickle model
+        # with open("models/fully-trained.pkl", "rb") as f:
+        #     genome = pickle.load(f)
+
+        # # Convert loaded genome into required data structure
+        # genomes = [(1, genome)]
+
+        # # Call game with only the loaded genome
+        # run_car(genomes, config)
+
+        p = neat.Checkpointer.restore_checkpoint('checkpoints/final-checkpoint')
+        
+    # Train from scratch
+    else:
+        # Create core evolution algorithm class
+        p = neat.Population(config)
 
     # Add reporter for fancy statistical result
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    if (load_model):
-        # Unpickle model
-        with open("models/fully-trained.pkl", "rb") as f:
-            genome = pickle.load(f)
+    # Add checkpointer to save each generation
+    p.add_reporter(neat.Checkpointer(1, 5, "checkpoints/neat-checkpoint-"))
+        
+    # Run NEAT
+    winner = p.run(run_car, 1000)
+    with open("models/" + time.strftime("%d%m%Y-%H%M%S") + ".pkl", "wb") as f:
+        pickle.dump(winner, f)
+        f.close()
 
-        # Convert loaded genome into required data structure
-        genomes = [(1, genome)]
+    # Display the winning genome.
+    print('\nBest genome:\n{!s}'.format(winner))
 
-        # Call game with only the loaded genome
-        run_car(genomes, config)
-    else:
-        # Run NEAT
-        model = p.run(run_car, 1000)
-        with open("models/" + time.strftime("%d%m%Y-%H%M%S") + ".pkl", "wb") as f:
-            pickle.dump(model, f)
-            f.close()
+    node_names = {0:'RIGHT', 1: 'LEFT', 2:'GAS', 3: 'BRAKE'}
+    visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
 
 
 if __name__ == "__main__":
-    replay_genome(True)
+    load_model(True)
