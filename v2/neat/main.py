@@ -9,8 +9,8 @@ import time
 import gzip
 import visualize
 
-screen_width = 1500
-screen_height = 800
+screen_width = 1920
+screen_height = 1080
 generation = 0
 
 class Car:
@@ -18,7 +18,7 @@ class Car:
         self.surface = pygame.image.load("car.png")
         self.surface = pygame.transform.scale(self.surface, (100, 100))
         self.rotate_surface = self.surface
-        self.pos = [700, 650]
+        self.pos = [896, 877]
         self.angle = 0
         self.speed = 1
         self.center = [self.pos[0] + 50, self.pos[1] + 50]
@@ -32,15 +32,37 @@ class Car:
         self.draw_radar(screen)
 
     def draw_radar(self, screen):
+        # print("##########################")
+        # print(self.radars[3][1]) # Front
+
         for r in self.radars:
             pos, dist = r
+
             pygame.draw.line(screen, (0, 255, 0), self.center, pos, 1)
             pygame.draw.circle(screen, (0, 255, 0), pos, 5)
+        
+        r = self.radars[3]
+        if (r[1] <= 150):
+            pygame.draw.line(screen, (255, 165, 0), self.center, r[0], 1)
+            pygame.draw.circle(screen, (255, 165, 0), r[0], 5)
+            self.speed = 5
+        
+        if (r[1] <= 100):
+            pygame.draw.line(screen, (255, 0, 0), self.center, r[0], 1)
+            pygame.draw.circle(screen, (255, 0, 0), r[0], 5)
+            self.speed = 3
+        
+        if (r[1] <= 50):
+            self.speed = 0
+        
+        # print(self.speed)
+
 
     def check_collision(self, map):
         for p in self.four_points:
             if map.get_at((int(p[0]), int(p[1]))) == (255, 255, 255, 255):
                 self.is_alive = False
+                print("COLLISION")
                 break
 
     def check_radar(self, degree, map):
@@ -56,8 +78,10 @@ class Car:
         dist = int(math.sqrt(math.pow(x - self.center[0], 2) + math.pow(y - self.center[1], 2)))
         self.radars.append([(x, y), dist])
 
+        # print("angle: " + str(degree) + " x: " + str(x) + " y: " + str(y) + " dist: " + str(dist))
+
     def update(self, map):
-        if (self.speed <= 3):
+        if (self.speed < 3):
             self.time_spent_idle += 1
         else:
             self.time_spent_idle == 0
@@ -141,7 +165,7 @@ def run_car(genomes, config):
     clock = pygame.time.Clock()
     generation_font = pygame.font.SysFont("Arial", 70)
     font = pygame.font.SysFont("Arial", 30)
-    map = pygame.image.load('map3.png')
+    map = pygame.image.load('wallmap.png')
 
 
     # Main loop
@@ -166,7 +190,7 @@ def run_car(genomes, config):
                     output_0 = True
                 
                 if (output_1 == False):
-                    car.angle += 10
+                    car.angle += 5
                 output_1 = False
             elif i == 1:
                 if (output_1 == True):
@@ -175,7 +199,7 @@ def run_car(genomes, config):
                     output_1 = True
                 
                 if (output_0 == False):
-                    car.angle -= 10
+                    car.angle -= 5
                 output_0 = False
             elif i == 2:
                 output_0 = False
@@ -224,15 +248,15 @@ def load_model(load_model):
 
     # Load in a model
     if (load_model):
-        # # Unpickle model
-        # with open("models/fully-trained.pkl", "rb") as f:
-        #     genome = pickle.load(f)
+        # Unpickle model
+        with open("models/final-trained.pkl", "rb") as f:
+            genome = pickle.load(f)
 
-        # # Convert loaded genome into required data structure
-        # genomes = [(1, genome)]
+        # Convert loaded genome into required data structure
+        genomes = [(1, genome)]
 
-        # # Call game with only the loaded genome
-        # run_car(genomes, config)
+        # Call game with only the loaded genome
+        run_car(genomes, config)
 
         p = neat.Checkpointer.restore_checkpoint('checkpoints/final-checkpoint')
         
